@@ -52,7 +52,6 @@ This repository follows a professional Git workflow:
 feat(script): add health report script
 docs(readme): update internship workflow section
 
-
 ## Contributing
 
 - Create a feature branch
