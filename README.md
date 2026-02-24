@@ -51,3 +51,10 @@ This repository follows a professional Git workflow:
 ### Example Commit Format
 feat(script): add health report script
 docs(readme): update internship workflow section
+
+## Contributing
+
+- Create a feature branch
+- Follow commit message conventions
+- Open a Pull Request
+- Obtain at least 2 approvals before merging
