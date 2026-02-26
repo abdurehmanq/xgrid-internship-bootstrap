@@ -20,9 +20,10 @@ DISK_FREE=$(df -h / | awk 'NR==2 {print $4}')
 # ==========================================
 # 2. Process Data Handling
 # ==========================================
-# Instead of using awk to manually build a JSON string, we pass the raw text 
-# to jq. This safely handles quotes, escapes characters, and builds a strict JSON array.
-TOP_PROCESSES_JSON=$(ps -eo pid,comm,%cpu --no-headers --sort=-%cpu | head -n 3 | jq -R -s '
+# We still use jq here to safely build the array of processes. 
+# This prevents manual awk loops from leaving a trailing comma or 
+# breaking if a process name has a weird character.
+TOP_PROCESSES=$(ps -eo pid,comm,%cpu --no-headers --sort=-%cpu | head -n 3 | jq -R -s '
   split("\n") | map(select(length > 0)) | map(
     gsub("^ +"; "") | gsub(" +"; " ") | split(" ") | {
       pid: (.[0] | tonumber),
@@ -33,30 +34,23 @@ TOP_PROCESSES_JSON=$(ps -eo pid,comm,%cpu --no-headers --sort=-%cpu | head -n 3 
 ')
 
 # ==========================================
-# 3. Safe JSON Construction & Pretty Printing
+# 3. JSON Output via EOF
 # ==========================================
-# --arg passes shell variables as safe JSON strings.
-# --argjson passes our process variable as an actual JSON array, not a string.
-jq -n \
-  --arg cpu "$CPU_USAGE" \
-  --arg mt "$MEM_TOTAL" \
-  --arg mu "$MEM_USED" \
-  --arg mf "$MEM_FREE" \
-  --arg dt "$DISK_TOTAL" \
-  --arg du "$DISK_USED" \
-  --arg df "$DISK_FREE" \
-  --argjson procs "$TOP_PROCESSES_JSON" \
-  '{
-    cpu_usage_percent: $cpu,
-    memory: {
-      total_mb: $mt,
-      used_mb: $mu,
-      free_mb: $mf
-    },
-    disk: {
-      total: $dt,
-      used: $du,
-      free: $df
-    },
-    top_processes: $procs
-  }'
+# The EOF block is fed directly into `jq '.'` which parses, validates, 
+# and pretty-prints the final output.
+jq '.' <<EOF
+{
+  "cpu_usage_percent": "$CPU_USAGE",
+  "memory": {
+    "total_mb": "$MEM_TOTAL",
+    "used_mb": "$MEM_USED",
+    "free_mb": "$MEM_FREE"
+  },
+  "disk": {
+    "total": "$DISK_TOTAL",
+    "used": "$DISK_USED",
+    "free": "$DISK_FREE"
+  },
+  "top_processes": $TOP_PROCESSES
+}
+EOF
