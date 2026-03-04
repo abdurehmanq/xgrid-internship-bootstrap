@@ -18,14 +18,18 @@ pipeline {
             }
         }
 
-        stage('Test API Endpoint') {
+       stage('Test API Endpoint') {
             steps {
-                // Run the container on port 8082 (since Jenkins is using 8080)
+                // Run the container
                 sh 'docker run -d --name api-test-run -p 8082:8080 sre-health-api:jenkins-build'
                 sh 'sleep 5' // Give the Python app a few seconds to boot up
                 
-                // Test the health endpoint. If it fails, the pipeline turns red.
-                sh 'curl -f http://localhost:8082/health || exit 1'
+                // The SRE Fix: Dynamically grab the container's internal IP address
+                sh '''
+                    API_IP=$(docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' api-test-run)
+                    echo "The API container is running at IP: $API_IP"
+                    curl -f http://$API_IP:8080/health || exit 1
+                '''
             }
         }
     }
