@@ -22,6 +22,9 @@ resource "aws_security_group" "web_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+
+  tags = var.tags
 }
 
 resource "aws_instance" "web_server" {
@@ -29,9 +32,9 @@ resource "aws_instance" "web_server" {
   instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-  # Addressing Reviewer: Added Key Pair
+  
   key_name = var.key_name
 
-  # Addressing Reviewer: Using the tags variable
+  
   tags = var.tags
 }
