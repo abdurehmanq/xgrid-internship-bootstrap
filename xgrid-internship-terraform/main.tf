@@ -1,13 +1,3 @@
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-}
-
 resource "aws_security_group" "web_sg" {
   name        = "xgrid-intern-sg"
   description = "Allow SSH and HTTP traffic"
@@ -35,12 +25,13 @@ resource "aws_security_group" "web_sg" {
 }
 
 resource "aws_instance" "web_server" {
-  ami             = data.aws_ami.ubuntu.id
-  instance_type   = var.instance_type
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-  tags = {
-    Name = "xgrid-week2-server"
-    Role = "SRE-Intern"
-  }
+  # Addressing Reviewer: Added Key Pair
+  key_name = var.key_name
+
+  # Addressing Reviewer: Using the tags variable
+  tags = var.tags
 }
