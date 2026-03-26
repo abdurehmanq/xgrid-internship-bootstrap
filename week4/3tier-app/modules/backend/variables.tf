@@ -28,3 +28,8 @@ variable "db_name" {
   description = "Aurora database name"
   type        = string
 }
+
+variable "db_secret_arn" {
+  description = "The ARN of the RDS managed secret"
+  type        = string
+}
