@@ -20,7 +20,6 @@ module "security" {
 # 3. Database Module
 module "database" {
   source = "./modules/database"
-
   private_db_subnet_ids = module.networking.private_db_subnet_ids
   database_sg_id        = module.security.database_sg_id
 }
@@ -34,6 +33,7 @@ module "backend" {
   iam_instance_profile_name = module.security.backend_iam_profile_name
   db_endpoint               = module.database.cluster_endpoint
   db_name                   = module.database.database_name
+  db_secret_arn             = module.database.db_secret_arn
 }
 
 # 5. Frontend Module (React + Nginx)
