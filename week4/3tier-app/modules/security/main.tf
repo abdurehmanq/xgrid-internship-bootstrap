@@ -77,7 +77,7 @@ resource "aws_security_group" "database" {
     security_groups = [aws_security_group.backend.id]
   }
 
-  # NEW RULE for Frontend Setup Script
+  # Existing rule for Frontend Setup Script
   ingress {
     description     = "PostgreSQL access from Frontend for setup script"
     from_port       = 5432 
@@ -129,14 +129,14 @@ resource "aws_iam_role_policy_attachment" "ssm_access" {
 # Custom policy for RDS IAM Authentication
 resource "aws_iam_policy" "rds_iam_auth" {
   name        = "${var.vpc_name}-rds-iam-auth"
-  description = "Allow EC2 to connect to Aurora via IAM"
+  description = "Allow EC2 to connect to RDS via IAM"
   policy      = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         Effect   = "Allow"
         Action   = ["rds-db:connect"]
-        Resource = ["arn:aws:rds-db:*:*:dbuser:*/backend_user"] # We will set this user up in the DB
+        Resource = ["arn:aws:rds-db:*:*:dbuser:*/backend_user"] 
       }
     ]
   })
@@ -151,4 +151,20 @@ resource "aws_iam_role_policy_attachment" "rds_iam_auth_attach" {
 resource "aws_iam_instance_profile" "backend_profile" {
   name = "${var.vpc_name}-backend-profile"
   role = aws_iam_role.backend_role.name
+}
+
+# =========================================================
+# NEW: Allow Backend to read from AWS Secrets Manager
+# =========================================================
+resource "aws_iam_role_policy" "backend_secrets_policy" {
+  name = "${var.vpc_name}-backend-secrets-policy"
+  role = aws_iam_role.backend_role.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action   = "secretsmanager:GetSecretValue"
+      Effect   = "Allow"
+      Resource = "*" # Allows the backend to read the secret
+    }]
+  })
 }
