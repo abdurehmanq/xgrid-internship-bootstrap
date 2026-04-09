@@ -1,4 +1,0 @@
-output "instance_profile_name" {
-  description = "Name of the IAM instance profile to attach to EC2 instances"
-  value       = aws_iam_instance_profile.ec2_profile.name
-}
